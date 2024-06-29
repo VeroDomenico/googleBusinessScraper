@@ -1,8 +1,11 @@
 beautifulsoup4==4.12.3
 certifi==2024.6.2
 charset-normalizer==3.3.2
+dnspython==2.6.1
+email_validator==2.2.0
 greenlet==3.0.3
 idna==3.7
+lxml==5.2.2
 playwright==1.44.0
 pyee==11.1.0
 requests==2.32.3
