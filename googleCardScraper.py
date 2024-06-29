@@ -3,6 +3,7 @@ from playwright.sync_api import Page, sync_playwright
 from typing import List
 import time
 import locators
+import emailExtractJob
 from bs4 import BeautifulSoup
 import requests
 import re
@@ -22,24 +23,7 @@ class GoogleBusinessCard:
     def to_dict(self):
         return vars(self)
 
-
-def find_emails(url):
-    try:
-        response = requests.get(url)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching the URL: {e}")
-        return []
     
-    data = response.text
-    soup = BeautifulSoup(data, 'html.parser')
-    
-    # Use raw strings for regex patterns
-    emails = re.findall(r'\S+@\S+', soup.text)
-    return emails
-    
-url = "http://www.webpage.com"
-print(find_emails(url))
 # Helpers
 def clean_data(value):
     return re.sub(r'[^a-zA-Z0-9\s.\(\)]', '', value)
@@ -66,9 +50,9 @@ def googleCardScraper(url, page: Page) -> List[GoogleBusinessCard]:
     page.goto(url, wait_until="load")
 
     # pull in all the data through scrolling can remove contains(@class, 'dS8AEf') if needed
-    # scroll_to_load_data(page,
-    #                     scroll_selector="//*[contains(@class, 'dS8AEf') and @tabindex and @role='feed']",
-    #                     endCon=lambda: endcon(page))
+    scroll_to_load_data(page,
+                        scroll_selector="//*[contains(@class, 'dS8AEf') and @tabindex and @role='feed']",
+                        endCon=lambda: endcon(page))
 
     all_business_cards = page.locator(locators.business_cards_locator)
     for i in range(all_business_cards.count()):
@@ -124,7 +108,10 @@ def googleCardScraper(url, page: Page) -> List[GoogleBusinessCard]:
 
         # Open website and look for emails if website is available
         if googleBusinessCard.website:
-            print(find_emails(f'http://{googleBusinessCard.website}'))
+            entry = {'website': f'http://{googleBusinessCard.website}'}
+            email_job = emailExtractJob.EmailExtractJob(parent_id='1234', entry=entry)
+            processed_entry, _, _ = email_job.process()
+            googleBusinessCard.emails = processed_entry.get('emails', [])
 
         googleBusinessCards.append(googleBusinessCard)
 
@@ -138,8 +125,8 @@ if __name__ == "__main__":
     Test Driver
     """
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=False)
+        browser = playwright.chromium.launch(headless=True)
         context = browser.new_context()
         page = context.new_page()
 
-        googleCardScraper(f"https://www.google.com/maps/search/optometrist", page)
+        googleCardScraper(f"https://www.google.com/maps/search/dentist", page)
