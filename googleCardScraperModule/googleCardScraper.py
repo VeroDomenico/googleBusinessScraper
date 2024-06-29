@@ -51,9 +51,9 @@ def googleCardScraper(url, page: Page) -> List[GoogleBusinessCard]:
     page.goto(url, wait_until="load")
 
     # pull in all the data through scrolling can remove contains(@class, 'dS8AEf') if needed
-    # scroll_to_load_data(page,
-    #                     scroll_selector="//*[contains(@class, 'dS8AEf') and @tabindex and @role='feed']",
-    #                     endCon=lambda: endcon(page))
+    scroll_to_load_data(page,
+                        scroll_selector="//*[contains(@class, 'dS8AEf') and @tabindex and @role='feed']",
+                        endCon=lambda: endcon(page))
 
     all_business_cards = page.locator(locators.business_cards_locator)
     for i in range(all_business_cards.count()):
@@ -130,4 +130,4 @@ if __name__ == "__main__":
         context = browser.new_context()
         page = context.new_page()
 
-        googleCardScraper(f"https://www.google.com/maps/search/dentist", page)
+        googleCardScraper(f"https://www.google.com/maps/search/dentist+32765", page)
