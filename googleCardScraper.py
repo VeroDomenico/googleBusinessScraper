@@ -11,7 +11,7 @@ from locators import *
 from utils import scroll_to_load_data
 
 class GoogleBusinessCard:
-    def __init__(self, name=None, review_count=None, rating=None, address=None, website=None, phone=None, emails=None):
+    def __init__(self, name=None, review_count=None, rating=None, address=None, website=None, phone=None, emails=None, socials=None):
         self.name = name
         self.rating = rating
         self.review_count = review_count
@@ -19,6 +19,7 @@ class GoogleBusinessCard:
         self.website = website
         self.phone = phone
         self.emails = emails or []
+        self.socials = socials or []
 
     def to_dict(self):
         return vars(self)
@@ -50,9 +51,9 @@ def googleCardScraper(url, page: Page) -> List[GoogleBusinessCard]:
     page.goto(url, wait_until="load")
 
     # pull in all the data through scrolling can remove contains(@class, 'dS8AEf') if needed
-    scroll_to_load_data(page,
-                        scroll_selector="//*[contains(@class, 'dS8AEf') and @tabindex and @role='feed']",
-                        endCon=lambda: endcon(page))
+    # scroll_to_load_data(page,
+    #                     scroll_selector="//*[contains(@class, 'dS8AEf') and @tabindex and @role='feed']",
+    #                     endCon=lambda: endcon(page))
 
     all_business_cards = page.locator(locators.business_cards_locator)
     for i in range(all_business_cards.count()):
@@ -109,9 +110,9 @@ def googleCardScraper(url, page: Page) -> List[GoogleBusinessCard]:
         # Open website and look for emails if website is available
         if googleBusinessCard.website:
             entry = {'website': f'http://{googleBusinessCard.website}'}
-            email_job = emailExtractJob.EmailExtractJob(parent_id='1234', entry=entry)
-            processed_entry, _, _ = email_job.process()
-            googleBusinessCard.emails = processed_entry.get('emails', [])
+            email_job = emailExtractJob.EmailExtractJob(parent_id='1234', entry=entry, depth=2)
+            processed_entry, googleBusinessCard.socials, _ = email_job.process()
+            googleBusinessCard.emails = processed_entry if processed_entry else []
 
         googleBusinessCards.append(googleBusinessCard)
 
@@ -125,7 +126,7 @@ if __name__ == "__main__":
     Test Driver
     """
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
+        browser = playwright.chromium.launch(headless=False)
         context = browser.new_context()
         page = context.new_page()
 
