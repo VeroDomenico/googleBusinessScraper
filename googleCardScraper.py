@@ -24,12 +24,20 @@ class GoogleBusinessCard:
 
 
 def find_emails(url):
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching the URL: {e}")
+        return []
+    
     data = response.text
     soup = BeautifulSoup(data, 'html.parser')
-    emails = re.findall('\S+@\S+', soup.text)
+    
+    # Use raw strings for regex patterns
+    emails = re.findall(r'\S+@\S+', soup.text)
     return emails
-
+    
 url = "http://www.webpage.com"
 print(find_emails(url))
 # Helpers
