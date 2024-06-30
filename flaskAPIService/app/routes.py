@@ -1,9 +1,9 @@
+# app/routes.py
 from flask import Blueprint, jsonify, request
 from .models import Query, QueryStatus
-from . import mongo, redis_client
+from . import mongo
 import datetime
 from celery.result import AsyncResult
-from app.workers import scrape_site
 
 bp = Blueprint('main', __name__)
 
@@ -24,19 +24,17 @@ def health_check():
 def create_search_queries():
     if request.is_json:
         data = request.get_json()
-        print(data)
         search_queries = data.get('search_queries', [])
         
         if not isinstance(search_queries, list):
             return jsonify({"error": "Invalid data format. 'search_queries' should be a list."}), 400
         
         created_queries = []
-        print(search_queries)
         for query_data in search_queries:
             search_string = query_data.get('search_string')
             if not search_string:
                 return jsonify({"error": "Each query must have 'search_string'."}), 400
-            print(search_string)
+            
             query = Query(
                 search_string=search_string,
                 status=QueryStatus.ADDED,
@@ -45,18 +43,15 @@ def create_search_queries():
                 numberOfBusinessScraped=0
             )
             
-            # Create Redis job
-            # redis_task_id = redis_client.rpush('query_jobs', query.to_dict())
-            # query.redis_task_id = redis_task_id
-            
             # Save query to MongoDB
             db = mongo.cx.query_service
             query_id = db.queries_search.insert_one(query.to_dict()).inserted_id
             
-            #Start Scrape job
-            scrape_site(query.search_string)
+            # Start scrape job
+            from app.workers import celery
+            celery.send_task("scrape_site", args=[query.search_string])
             
-            
+            created_queries.append(query.to_dict())
 
         return jsonify(created_queries), 201
     else:
@@ -69,7 +64,6 @@ def test_mongo_insert():
     """
     db = mongo.cx.query_service
     
-    print(db.list_collection_names())
     col = db.queries_search
-    res= col.insert_one({"test":"test"})
+    res = col.insert_one({"test": "test"})
     return jsonify({"status": "success", "inserted_id": str(res.inserted_id)}), 201

@@ -1,20 +1,20 @@
-import os
-import time
+# app/worker.py
 
-from celery import Celery
-from app.googleCardScraperModule import run
+from app import create_app
+from app.googleCardScraperModule import run, GoogleBusinessCard
+from . import mongo
 
-
-celery = Celery(__name__)
-celery.conf.broker_url = os.environ.get("REDIS_URL")
-celery.conf.result_backend = os.environ.get("REDIS_URL")
-
+app, celery = create_app()
 
 @celery.task(name="scrape_site")
 def scrape_site(url):
-    gcards = run(url)  
+    gcards = run(url)  # This should return a list of GoogleBusinessCard objects
 
-    # Update Mongo DB
-    for gcard in gcards:
-        print(gcard.to_dict())
+    # Update MongoDB
+    db = mongo.cx.query_service
+
+    for card in gcards:
+        if isinstance(card, GoogleBusinessCard):
+            db.query_gcard_results.insert_one(card.to_dict())
+
     return True
