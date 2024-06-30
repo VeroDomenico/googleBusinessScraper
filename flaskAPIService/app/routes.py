@@ -23,6 +23,7 @@ def health_check():
 def create_search_queries():
     if request.is_json:
         data = request.get_json()
+        print(data)
         search_queries = data.get('search_queries', [])
         
         if not isinstance(search_queries, list):
