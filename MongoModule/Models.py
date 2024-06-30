@@ -1,28 +1,29 @@
-from datetime import datetime
 from typing import Optional
-
+from datetime import datetime
 
 class Query:
-    """
-        Query Class that represents 
-    """
-    def __init__(self, 
-                 search_string: str, 
-                 status: str = "ADDED", 
-                 created_time: Optional[datetime] = None, 
-                 completed_time: Optional[datetime] = None, 
-                 number_of_business_scraped: int = 0):
-        self.redis_task_id = None
+    def __init__(self, search_string: str, status: str, createdTime: Optional[datetime] = None, completedTime: Optional[datetime] = None, numberOfBusinessScraped: int = 0):
+        self.id = None  # Will be set by MongoDB
         self.search_string = search_string
         self.status = status
-        self.created_time = created_time #if created_time else datetime.utcnow()
-        self.completed_time = completed_time
-        self.number_of_business_scraped = number_of_business_scraped
+        self.createdTime = createdTime
+        self.completedTime = completedTime
+        self.numberOfBusinessScraped = numberOfBusinessScraped
+        self.redis_task_id = None
 
     def to_dict(self):
-        return vars(self)
-    
-class Job:
-    def __init__(self,) -> None:
-        self.redis_task_id = None
-        self.gcardList = []
+        return {
+            "_id": str(self.id) if self.id else None,
+            "search_string": self.search_string,
+            "status": self.status,
+            "createdTime": self.createdTime,
+            "completedTime": self.completedTime,
+            "numberOfBusinessScraped": self.numberOfBusinessScraped,
+            "redis_task_id": self.redis_task_id
+        }
+
+class QueryStatus:
+    ADDED = "ADDED"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    ERROR = "ERROR"
