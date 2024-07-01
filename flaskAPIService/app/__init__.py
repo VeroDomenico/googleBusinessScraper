@@ -11,6 +11,10 @@ mongo = PyMongo()
 redis_client = FlaskRedis()
 
 def create_app():
+    """
+    Loads env file and then creates flask server and celery
+    
+    """
     load_dotenv()
 
     app = Flask(__name__, instance_relative_config=True)
