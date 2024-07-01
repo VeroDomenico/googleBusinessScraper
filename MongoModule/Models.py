@@ -12,15 +12,7 @@ class Query:
         self.redis_task_id = None
 
     def to_dict(self):
-        return {
-            "_id": str(self.id) if self.id else None,
-            "search_string": self.search_string,
-            "status": self.status,
-            "createdTime": self.createdTime,
-            "completedTime": self.completedTime,
-            "numberOfBusinessScraped": self.numberOfBusinessScraped,
-            "redis_task_id": self.redis_task_id
-        }
+        return vars(self)
 
 class QueryStatus:
     ADDED = "ADDED"

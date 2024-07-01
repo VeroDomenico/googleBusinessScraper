@@ -45,13 +45,16 @@ def create_search_queries():
             
             # Save query to MongoDB
             db = mongo.cx.query_service
-            query_id = db.queries_search.insert_one(query.to_dict()).inserted_id
             
             # Start scrape job
             from app.workers import celery
-            celery.send_task("scrape_site", args=[query.search_string])
+            result = celery.send_task("scrape_site", args=[query.search_string])
             
-            created_queries.append(query.to_dict())
+            query.redis_task_id = result.id
+            query.status = result.status
+            db.queries_search.insert_one(query.to_dict()).inserted_id
+
+            created_queries.append(query.search_string)
 
         return jsonify(created_queries), 201
     else:
