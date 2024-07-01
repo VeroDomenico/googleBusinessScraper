@@ -2,13 +2,12 @@ import re
 from playwright.sync_api import Page, sync_playwright
 from typing import List
 import time
-import locators
-import emailExtractJob
 from bs4 import BeautifulSoup
 import requests
-import re
-from locators import *
-from utils import scroll_to_load_data
+
+from . import locators
+from . import emailExtractJob
+from .utils import scroll_to_load_data
 
 class GoogleBusinessCard:
     def __init__(self, name=None, review_count=None, rating=None, address=None, website=None, phone=None, emails=None, socials=None):
@@ -120,6 +119,16 @@ def googleCardScraper(url, page: Page) -> List[GoogleBusinessCard]:
         print(gcard.to_dict())
     print(googleBusinessCards)
     return googleBusinessCards
+
+def run(url) -> GoogleBusinessCard:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = browser.new_context()
+        page = context.new_page()
+
+        return googleCardScraper(url, page)
+
+
 
 if __name__ == "__main__":
     """
