@@ -12,6 +12,7 @@ from .utils import scroll_to_load_data
 class GoogleBusinessCard:
     def __init__(self, name=None, review_count=None, rating=None, address=None, website=None, phone=None, emails=None, socials=None):
         self.name = name
+        self.task_id = None
         self.rating = rating
         self.review_count = review_count
         self.address = address
@@ -19,7 +20,9 @@ class GoogleBusinessCard:
         self.phone = phone
         self.emails = emails or []
         self.socials = socials or []
-
+        self.email_sent = False
+        self.email_processing = False
+    
     def to_dict(self):
         return vars(self)
 

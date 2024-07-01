@@ -9,7 +9,7 @@ class Query:
         self.createdTime = createdTime
         self.completedTime = completedTime
         self.numberOfBusinessScraped = numberOfBusinessScraped
-        self.redis_task_id = None
+        self.task_id = None
 
     def to_dict(self):
         return vars(self)

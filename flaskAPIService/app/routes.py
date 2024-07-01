@@ -35,6 +35,12 @@ def create_search_queries():
             if not search_string:
                 return jsonify({"error": "Each query must have 'search_string'."}), 400
             
+            # Check if the query already exists
+            existing_query = db.queries_search.find_one({'search_string': search_string})
+            if existing_query:
+                print(f"Query '{search_string}' already exists. Skipping.")
+                continue
+                
             query = Query(
                 search_string=search_string,
                 status=QueryStatus.ADDED,
@@ -50,7 +56,7 @@ def create_search_queries():
             from app.workers import celery
             result = celery.send_task("scrape_site", args=[query.search_string])
             
-            query.redis_task_id = result.id
+            query.task_id = result.id
             query.status = result.status
             db.queries_search.insert_one(query.to_dict()).inserted_id
 
@@ -60,13 +66,13 @@ def create_search_queries():
     else:
         return jsonify({"error": "Request must be JSON"}), 400
 
-@bp.route('/test-mongo-insert', methods=['POST'])
-def test_mongo_insert():
-    """
-    Test route to insert a document into MongoDB
-    """
-    db = mongo.cx.query_service
+# @bp.route('/test-mongo-insert', methods=['POST'])
+# def test_mongo_insert():
+#     """
+#     Test route to insert a document into MongoDB
+#     """
+#     db = mongo.cx.query_service
     
-    col = db.queries_search
-    res = col.insert_one({"test": "test"})
-    return jsonify({"status": "success", "inserted_id": str(res.inserted_id)}), 201
+#     col = db.queries_search
+#     res = col.insert_one({"test": "test"})
+#     return jsonify({"status": "success", "inserted_id": str(res.inserted_id)}), 201
