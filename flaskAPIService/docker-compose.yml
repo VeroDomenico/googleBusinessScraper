@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  flask_app:
+    build: .
+    container_name: flask
+    environment:
+      - FLASK_HOST=0.0.0.0
+      - FLASK_PORT=5000
+      - CELERY_BROKER_URL=redis://:daqVifhD7X4pYwTEeIc2LceAswcWUubI2s4Y1WeVdBg7NMy33tXI6FUH6b5msSIe@88.198.35.125:5454/0
+      - CELERY_RESULT_BACKEND=redis://:daqVifhD7X4pYwTEeIc2LceAswcWUubI2s4Y1WeVdBg7NMy33tXI6FUH6b5msSIe@88.198.35.125:5454/0
+    ports:
+      - "5001:5000"
+    command: ["python", "run.py"]
+
+  celery_worker:
+    build: .
+    container_name: celery
+    command: celery -A app.workers.celery worker --loglevel=info  
+    environment:
+      - CELERY_BROKER_URL=redis://:daqVifhD7X4pYwTEeIc2LceAswcWUubI2s4Y1WeVdBg7NMy33tXI6FUH6b5msSIe@88.198.35.125:5454/0
+      - CELERY_RESULT_BACKEND=redis://:daqVifhD7X4pYwTEeIc2LceAswcWUubI2s4Y1WeVdBg7NMy33tXI6FUH6b5msSIe@88.198.35.125:5454/0
